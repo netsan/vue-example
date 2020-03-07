@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <script src="https://cdn.bootcss.com/vue/2.6.11/vue.js"></script>
+    <script src="https://cdn.bootcss.com/vue-router/3.1.3/vue-router.js"></script>
+    <link rel="stylesheet" href="https://cdn.bootcss.com/twitter-bootstrap/3.4.1/css/bootstrap.min.css">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div id="app">
+    <div class="container">
+        <router-view></router-view>
+    </div>
+</div>
+
+<script type="text/x-template" id="NewsListComponent">
+    <div>
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <h3 class="panel-title">新闻列表</h3>
+            </div>
+            <table class="table table-bordered table-condensed table-hover">
+                <tbody>
+                <tr v-for="v in newsList">
+                    <td>
+                        <router-link :to="{name: 'newsContent', params: {id: v.id}}">{{v.title}}</router-link>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+        <router-view></router-view>
+    </div>
+</script>
+
+<script type="text/x-template" id="NewsContentComponent">
+    <div class="panel panel-default">
+        <div class="panel-heading">
+            <h2 class="panel-title">新闻内容</h2>
+        </div>
+        <div class="panel-body">
+            <h3 class="text-center">{{news.title}}</h3>
+            {{news.content}}
+        </div>
+        <div class="panel-footer text-right">
+            <router-link to="/">
+                <button class="btn btn-default btn-sm">返回首页</button>
+            </router-link>
+        </div>
+    </div>
+</script>
+
+<script type="text/x-template" id="NotFoundComponent">
+    <div class="alert alert-danger text-center">
+        404 NOT FOUND
+    </div>
+</script>
+
+<script>
+    const newsList = [
+        {
+            id: 1000,
+            title: '考古学家利用激光揭露100公里玛雅石路之谜',
+            'content': '据外媒报道，考古学家利用激光技术绘制了一条长100公里的玛雅石路，这条路应该修建于1300年前，在当时帮助抵御现代墨西哥一座孤立城市的入侵。'
+        },
+        {
+            id: 1001,
+            title: '一口气读懂中国的桥',
+            content: '复道是宫室或者山川之间，架空的长廊道，多在宫苑之中为帝王贵族所用。'
+        }
+    ];
+
+    const NewsListComponent = {
+        template: '#NewsListComponent',
+        data() {
+            return {
+                newsList
+            };
+        }
+    };
+    const NewsContentComponent = {
+        template: '#NewsContentComponent',
+        data() {
+            return {
+                news: {}
+            }
+        },
+        // 监听路由变化
+        watch: {
+            '$route'(to, from) {
+                this.loadNewsContent();
+            }
+        },
+        // 组件只有第一次挂载的时候会执行
+        mounted() {
+            this.loadNewsContent();
+        },
+        methods: {
+            loadNewsContent() {
+                let id = parseInt(this.$route.params.id);
+                for (let i = 0; i < newsList.length; i++) {
+                    if (id === newsList[i].id) {
+                        this.news = newsList[i];
+                        return;
+                    }
+                }
+                this.$router.push('/404');
+            }
+        }
+    };
+    const NotFoundComponent = {
+        template: '#NotFoundComponent'
+    };
+    const router = new VueRouter({
+        routes: [
+            {
+                path: '/',
+                component: NewsListComponent,
+                children: [
+                    {
+                        path: '/news/:id(\\d+)',
+                        component: NewsContentComponent,
+                        name: 'newsContent',
+                    }
+                ]
+            },
+            {
+                path: '*',
+                component: NotFoundComponent
+            }
+        ]
+    });
+    const app = new Vue({
+        el: '#app',
+        router
+    });
+</script>
+</body>
+</html>
